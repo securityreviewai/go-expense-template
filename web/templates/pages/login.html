@@ -1,0 +1,31 @@
+{{ define "login.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login — Expenses</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded shadow w-full max-w-md" x-data="{ loading: false }">
+    <h1 class="text-2xl font-semibold mb-6">Sign in</h1>
+    {{ if .Error }}<p class="text-red-600 mb-4">{{ .Error }}</p>{{ end }}
+    <form method="POST" action="/login" class="space-y-4" @submit="loading = true">
+      <div>
+        <label class="block text-sm font-medium mb-1">Email</label>
+        <input name="email" type="email" required class="w-full border rounded p-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Password</label>
+        <input name="password" type="password" required class="w-full border rounded p-2">
+      </div>
+      <button class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700" :disabled="loading">
+        <span x-show="!loading">Sign in</span>
+        <span x-show="loading">Signing in…</span>
+      </button>
+    </form>
+  </div>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>
+{{ end }}

@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS expenses;
+DROP TABLE IF EXISTS expense_reports;
+DROP TABLE IF EXISTS users;

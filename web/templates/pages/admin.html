@@ -1,0 +1,32 @@
+{{ define "admin.html" }}
+{{ template "base" . }}
+{{ end }}
+
+{{ define "content" }}
+<h1 class="text-2xl font-semibold mb-6">User Administration</h1>
+
+<form method="POST" action="/admin/users" class="bg-white p-4 rounded shadow mb-6 grid grid-cols-2 gap-3">
+  <input name="full_name" placeholder="Full name" required class="border rounded p-2">
+  <input name="email" type="email" placeholder="Email" required class="border rounded p-2">
+  <select name="role" required class="border rounded p-2">
+    <option value="user">Regular User</option>
+    <option value="project_manager">Project Manager</option>
+    <option value="super_admin">Super Admin</option>
+  </select>
+  <input name="password" type="password" placeholder="Initial password" required class="border rounded p-2">
+  <button class="col-span-2 bg-indigo-600 text-white py-2 rounded">Create User</button>
+</form>
+
+<div class="bg-white rounded shadow divide-y">
+  {{ range .Users }}
+    <div class="p-4 flex items-center justify-between">
+      <div>
+        <p class="font-medium">{{ .FullName }} <span class="text-slate-400 text-sm">&lt;{{ .Email }}&gt;</span></p>
+        <p class="text-sm text-slate-500">{{ .Role }} · {{ if .Active }}active{{ else }}inactive{{ end }}</p>
+      </div>
+    </div>
+  {{ else }}
+    <p class="p-4 text-slate-500">No users.</p>
+  {{ end }}
+</div>
+{{ end }}

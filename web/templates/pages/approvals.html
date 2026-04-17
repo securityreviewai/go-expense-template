@@ -1,0 +1,35 @@
+{{ define "approvals.html" }}
+{{ template "base" . }}
+{{ end }}
+
+{{ define "content" }}
+<h1 class="text-2xl font-semibold mb-6">Pending Approvals</h1>
+
+<div class="bg-white rounded shadow divide-y">
+  {{ range .Pending }}
+    <div class="p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="font-medium">{{ .Title }}</p>
+          <p class="text-sm text-slate-500">From {{ .Submitter }}</p>
+        </div>
+        <div class="flex gap-2" x-data="{ showReason: false }">
+          <form method="POST" action="/approvals/{{ .ID }}/decide">
+            <input type="hidden" name="action" value="approve">
+            <button class="bg-emerald-600 text-white px-3 py-1 rounded text-sm">Approve</button>
+          </form>
+          <button class="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                  @click="showReason = !showReason">Reject</button>
+          <form x-show="showReason" method="POST" action="/approvals/{{ .ID }}/decide" class="flex gap-2">
+            <input type="hidden" name="action" value="reject">
+            <input name="reason" placeholder="Reason" class="border rounded p-1 text-sm">
+            <button class="bg-red-700 text-white px-3 py-1 rounded text-sm">Confirm</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {{ else }}
+    <p class="p-4 text-slate-500">No pending reports.</p>
+  {{ end }}
+</div>
+{{ end }}

@@ -1,0 +1,70 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: go-expense
+  ECS_CLUSTER: go-expense-dev-cluster
+  ECS_SERVICE: go-expense-dev-svc
+  CONTAINER_NAME: app
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+
+      - name: Go build & test
+        run: |
+          go mod tidy
+          go build ./...
+          go test ./... || true
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, push image
+        id: image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Render task definition
+        id: taskdef
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: .github/ecs/taskdef.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.image.outputs.image }}
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.taskdef.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
